@@ -271,7 +271,7 @@ $.renderUseVar = function (t, scope, extraData, d) {
 		t.stopper.parentNode.insertBefore(frag, t.stopper)
 		t.lastId = id
 		t.lastLength = count
-	} else {
+	} else if (t.compiled) {
 		$.render(t.compiled, usedScope, extraData)
     }
 }
