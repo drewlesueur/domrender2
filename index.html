@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+<style>
+.red {
+	color: red;
+}
+
+.yellow {
+	color: gold;
+	background-color: black;
+}
+
+.maroon {
+	color: maroon;
+}
+</style>
+</head>
+<body>
+
+<pre id=w>
+
+<select><option @repeat="vehicles v" value={v.id}>{v.name}</option></select>
+
+
+<input @repeat="vehicles v" @key=v.id @b=v.name @on.input="vehicles = [v]"/>
+<input type="text" @b=name />
+{name}
+<div @if="hasColors">Colors</div>
+<div @elseif="hasApples">apples</div>
+<div @else="">other</div>
+<button @on.click="hasColors = !hasColors">Toggle color</button>
+<button @on.click="hasApples = !hasApples">Toggle apple</button>
+{count}
+<button @on.click="count++">Increase count to {count + 1}</button>
+<input @repeat="colors c i" @b="colors[i]" @on.dradd="console.log(event.detail.value)" @on.drchangeb="logChange(event)"/>
+<div style="background-color: {colors[0]}">the first color</div>
+<div @repeat="colors c">{c}</div>
+<div @repeat="vehicles v">{v.name}</div>
+
+<div @repeat="vehicles v"><input @b=v.name @on.drchangeb="logChange(event)"/> </div>
+
+<div>
+	<label><input type="checkbox" value="cheese" @b=hasCheese> cheese {hasCheese}</label>
+	<label><input type="checkbox" value="crackers" @b=hasCrackers> crackers {hasCrackers} </label>
+	<label><input type="checkbox" value="spoons" @b=hasSpoons> spoons {hasSpoons} </label>
+</div>
+
+<div>
+	<label><input type="checkbox" value="cheese" @b=things> cheese</label>
+	<label><input type="checkbox" value="crackers" @b=things> crackers</label>
+	<label><input type="checkbox" value="spoons" @b=things> spoons </label>
+</div>
+
+<input @b=fruit /> {fruit}
+
+<label><input type=radio value=watermelon @b=fruit name=fruit /> watermelon </label>
+<label><input type=radio value=cherry @b=fruit name=fruit /> cherry </label>
+<label><input type=radio value=lemon @b=fruit name=fruit /> lemon</label>
+
+<div>
+<select @b=fruit>
+	<option value="watermelon">It's a melon</option>
+	<option value="cherry">It goes on icecream</option>
+	<option value="lemon">It grows on a lemon tree</option>
+</select>	
+</div>
+
+<div @switch=fruit @case="'watermelon'">spit out the seeds</div>
+<div @case="'cherry'">Ice cream goes with a cherry</div>
+<div @case="'lemon'">Life gave you this</div>
+<div @default>What fruit is that?</div>
+
+<div @use=test1 @scope=scope></div>
+<div @use=test2 @scope=scope @class.red="fruit == 'watermelon'" @class.yellow="fruit == 'lemon'" @class.maroon="fruit == 'cherry'"></div>
+</div>
+
+</pre>
+
+<div id="templates" style="display: none">
+<div id="test1">
+--{name}--
+</div>
+
+<div id="test2">
+<span style="font-weight: bold;">{fruit}</span>
+</div>
+</div> <!-- end templates -->
+
+<div style="display: none;">
+	<div @switch="val" @case="foo"> it's just foo</div>
+	<div @case="bar"> the bar</div>
+
+	<div @case="baz" @start> the baz</div>
+	<div @end> that was the baz</div>
+	<div @if=fo></div>
+	something
+
+	<div @use="test1" @scope="vehicles[0]">foobar</div>
+
+	Hi {name}
+
+	<div @usevar="template" @scope="vehicles[0]">foobar</div>
+
+	hi {name}
+	<div @repeat="vehicles v i" @start>ok {v.name}====</div>
+	<div @repeat="colors c" @start>start {c}</div>
+	<div @end>end {c}</div>
+	<div @end>{v.name}=====</div>
+
+	<div @repeat="vehicles v i" @start>
+	<div @repeat="colors c" @start>{v.name}: {c}</div><div @end>hi {c}</div>
+	</div >
+	<div @end>{v.name}==</div>
+
+	test bind is <span @t=name>foo</span>
+	test html <span @h=someHTML></span>
+	<input @b=name>
+	<input @repeat="vehicles v" @b=v.name>
+	test bind2 {name}
+	<div @repeat="vehicles v i" >hello {i + 1} {v.name} </div> 
+	<div>There are {vehicles.length} vehicles</div>
+
+	<div @repeat="vehicles v i" @start>a vehicle {v.name}</div>wowsa<div @end> that was a vehicle {v.name}
+	</div>
+
+	<div @repeat="vehicles v i">
+	<div @repeat="colors c">{v.name}: {c}</div>
+</div>
+
+</div>
+<script src="domrender2.js"></script>
+<script>
+var scope2 = {
+	logChange: function (e) {
+		console.log('changed from', event.detail.oldVal, 'to', event.detail.newVal)
+	},
+	things: [],
+	hasCheese: true,
+	hasCrackers: false,
+	hasSpoons: false,
+	count: 0,
+	fruit: "watermelon",
+	hasColors: true,
+	hasApples: true,
+	name: "drew",
+	someHTML: "<b>woo</b>",
+	colors: ["red", "green", "blue"],
+	template: "test1",
+	vehicles: [
+		{name: "Vehilce1", id: 1},
+		{name: "Vehicle2", id: 2},
+		{name: "Vehicle3", id: 3},
+		{name: "Vehicle 4", id: 4},
+	],
+	people: []
+}
+
+for (var i=0; i < 10000;i++) {
+	scope2.people.push({
+		name: "person " + i,
+		id: i
+	})	
+}
+var view = domrender2.bind(w, scope2, {noFirstRender: false})
+
+0 && setTimeout(function () {
+	scope.name = "aimree"
+	scope.someHTML = "<b>yea</b>"
+	view.render()
+}, 250)
+
+</script>
+</body>
+</html>
