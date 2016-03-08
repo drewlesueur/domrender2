@@ -1,0 +1,25 @@
+{
+  "name": "domrender2",
+  "version": "1.0.0",
+  "description": "view library",
+  "main": "domrender2.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drewlesueur/domrender2.git"
+  },
+  "keywords": [
+    "dom",
+    "js",
+    "view",
+    "library"
+  ],
+  "author": "Drew LeSueur and Caleb Davis and Cornelius Lamb and Carrie Nickel",
+  "license": "Free",
+  "bugs": {
+    "url": "https://github.com/drewlesueur/domrender2/issues"
+  },
+  "homepage": "https://github.com/drewlesueur/domrender2"
+}
