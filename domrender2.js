@@ -630,7 +630,7 @@ $._children_done = 2
 
 $.compileSubActions = {
 					"@style": function (parts0, parts1, d, child, attr, attrName) {
-						if (attrName == "@style") { parts[1] = $.camelCase(parts[1]) }
+						if (attrName == "@style") { parts1 = $.camelCase(parts[1]) }
 						d.boundThings.push({ type: "style", render: $.renderBasic[parts0], exprFn: $.compileExpr(attr.value), what: parts1, el: child })
                     },
 					"@class": function (parts0, parts1, d, child, attr, attrName) {
