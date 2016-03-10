@@ -12,6 +12,10 @@
 // 	- but what about ids of things.
 // DONE: <template> in addition (in stead) of @start and @end (done via @rapper)
 // TODO: now that you have @wrapper, depracate and remove @start and @end (maybe consolidate findEnd with wrapper conditionals)
+// TODO: potentially pointers so you don't have to reclone a @repeat frag over and over
+// gotcha - @attr.class and then @class.smthing
+// gotcha - @b and then @on.click
+
 var domrender2 = (function ($) {
 $.isTouch = 'ontouchstart' in window
 $.isFirefox = window.navigator.userAgent.indexOf("Firefox") != -1  // because firefox gives attributes in reverse order
@@ -280,7 +284,7 @@ $.renderGeneral = function (t, scope, extraData) {
 	if (extraData) t.el._extra = extraData
 }
 $.renderInterpolatedFast = function (t, scope, extraData) {
-    var newVal = t.exprFn(scope)
+    var newVal = [t.exprFn(scope)].join("") // wrapping in array and joining on "" flushes out the "undefined"'s
     if (t.oldVal == newVal) {
         return 
     }

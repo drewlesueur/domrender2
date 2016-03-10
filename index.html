@@ -14,12 +14,31 @@
 .maroon {
 	color: maroon;
 }
+
+.foo2 {
+	font-weight: bold;
+}
+.bar {
+	text-decoration: underline
+}
 </style>
 </head>
 <body>
 
 <pre id=w>
 
+<div>{myEmptyObj.bazzy}</div>
+<div>{myEmptyObj.bazzy} wazzy</div>
+
+{myEmptyVar}
+{myEmptyObj.foo}
+{myEmptyObj.isNull}
+
+<div @repeat="vehicles v">
+	<div @repeat="Object.keys(v) key">{key}: {v[key]}</div>
+</div>
+
+<div @attr.class="foo" @class.bar="hasBar"> yo</div>
 <select><option @repeat="vehicles v" value={v.id}>{v.name}</option></select>
 
 
@@ -132,6 +151,10 @@
 <script src="domrender2.js"></script>
 <script>
 var scope2 = {
+	myEmptyVar: null,
+	myEmptyObj: {foo: "bar", isNull: null},
+	foo: "foo2",
+	hasBar: true,
 	logChange: function (e) {
 		console.log('changed from', event.detail.oldVal, 'to', event.detail.newVal)
 	},
