@@ -596,7 +596,6 @@ $.visit = function (child, d) {
 		attrLoop:
 		for (var i=0; i<attrs.length;i++) {
 			var attr = attrs[i]
-            console.log("--" + attr.name)
 			if (attr.name.substr(0, 1) == "@") {
 				if (!addedGeneral) {
 					$.addBookkeepingBoundThing(child, d)
