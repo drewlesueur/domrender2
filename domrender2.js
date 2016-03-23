@@ -18,7 +18,6 @@
 
 var domrender2 = (function ($) {
 $.isTouch = 'ontouchstart' in window
-$.isFirefox = window.navigator.userAgent.indexOf("Firefox") != -1  // because firefox gives attributes in reverse order
 ;(function () { //https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
   if ( typeof window.CustomEvent === "function" ) return false;
   function CustomEvent ( event, params ) {
@@ -58,8 +57,14 @@ $.bind = function (el, scope, options) { // this is the starting point!
 $.makeOnFunc = function (child, expr, d) {
 	var fn = $.compileExprExtra(expr) // extra has loop info
 	return function (e) { // child._scope might be the same if we set that
-        window.event = e // firefox needs this.
-		fn.call(child, child._scope, child._extra)
+        //window.event = e // firefox needs this
+        var extra = child._extra
+        if (extra) {
+            extra.event = e 
+        } else {
+            extra = {event: e}
+        }
+		fn.call(child, child._scope, extra)
 		d.root.render()
 	}
 }
@@ -101,7 +106,9 @@ $.renderBasic = {
 	"@t":		$.renderWrap("t", function (t, scope, newVal) { t.el.firstChild.nodeValue = newVal	/*inner text*/			}),
 	"@h":		$.renderWrap("h", function (t, scope, newVal) { t.el.innerHTML = newVal		/*inner html*/			}),
 	"@style": 	$.renderWrap("style",function (t, scope, newVal) { t.el.style[t.what] = newVal 						}),
-	"@class": 	$.renderWrap("class", function (t, scope, newVal) { newVal ? t.el.classList.add(t.what) : t.el.classList.remove(t.what) 	}),
+	"@class": 	$.renderWrap("class", function (t, scope, newVal) {
+        newVal ? t.el.classList.add(t.what) : t.el.classList.remove(t.what)
+    }),
 	"@attr": 	$.renderWrap("attr", function (t, scope, newVal) { t.el.setAttribute(t.what, newVal) 					}),
 	"@hasattr": 	$.renderWrap("hasattr", function (t, scope, newVal) { newVal? t.el.setAttribute(t.what, newVal) : t.el.removeAttribute(t.what)})
 }
@@ -539,7 +546,6 @@ $.addInterpolatedPart = function (parts, str, start, end, look) {
 $.visit = function (child, d) {
 	var addedGeneral = false
 	if (child.nodeType == 3) { // maybe have an overwride class for preventing this
-        //if (child.nodeValue == "{col.label}") debugger
 		if (child.nodeValue.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
 			var parts = $.parseInterpolated(child.nodeValue)
 			if (parts.length) {
@@ -560,25 +566,37 @@ $.visit = function (child, d) {
 	if (child.nodeType != 1 && child.nodeType != 11) { return child.nextSibling }
 	var attrs = child.attributes
 	if (attrs) {
-		if ($.isFirefox) { // firefox reverses the order of attributes // you could feature detect if attributes are visited.
-			// TODO: you could try to sort them so that @repeat, @if, @switch, etc always go first.
-			var attrs2 = []
-			for (var i=attrs.length - 1; i >= 0; i--) {
-				attrs2.push(attrs[i])
-			}
-			attrs = attrs2
-		} else {
-			// TODO: is this slow, copying it because if you remove attr on NamedNodeMap, order is messed up
-			var attrs2 = []
-			for (var i=0; i < attrs.length; i++) {
-				attrs2.push(attrs[i])
-			}
-			attrs = attrs2
-		}
+        // TODO: is this slow, copying it because if you remove attr on NamedNodeMap, order is messed up
+        var attrs2 = []
+        for (var i=0; i < attrs.length; i++) {
+            attrs2.push(attrs[i])
+        }
+        attrs = attrs2
         var childrenDone = false
+
+        // @repeat first
+        // @attr.class first
+        // @b first
+
+        // put stuff in the right order, (ie)
+
+        var newAttrs = []
+        var orderIndex = 0;
+        for (var i=0; i < attrs.length; i++) {
+            if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch") {
+                newAttrs.splice(orderIndex, 0, attrs[i])
+            } else if (attrs[i].name == "@repeat" || attrs[i].name == "@use" || attrs[i].name == "@usevar") {
+                newAttrs.unshift(attrs[i])
+                orderIndex++;
+            } else {
+                newAttrs.push(attrs[i]) 
+            }
+        }
+        attrs = newAttrs
 		attrLoop:
 		for (var i=0; i<attrs.length;i++) {
 			var attr = attrs[i]
+            console.log("--" + attr.name)
 			if (attr.name.substr(0, 1) == "@") {
 				if (!addedGeneral) {
 					$.addBookkeepingBoundThing(child, d)
@@ -608,6 +626,15 @@ $.visit = function (child, d) {
                     }
                 }
             } else {
+                //console.log("name: " + attr.name + "; value: " + attr.value)
+                //console.log(attr)
+                //if (attr.name == "style") {
+                //    console.log("ok the attr") 
+                //    console.log(child.getAttribute("style")) 
+
+                //    console.log("ok the prop") 
+                //    console.log(child.style) 
+                //}
 				if (attr.value.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
 					var parts = $.parseInterpolated(attr.value)
 					if (parts.length) {
@@ -615,7 +642,11 @@ $.visit = function (child, d) {
 							$.addBookkeepingBoundThing(child, d)
 							addedGeneral = true	
 						}
-						d.boundThings.push({ type: "{}attr", render: $.renderInterpolatedAttr, parts: parts, el: child, attrName: attr.name })	
+                        var attrName = attr.name
+                        if (attrName == "drstyle") {
+                            attrName = "style" 
+                        }
+						d.boundThings.push({ type: "{}attr", render: $.renderInterpolatedAttr, parts: parts, el: child, attrName: attrName })	
 					}
 				}
 	    	}
@@ -749,13 +780,21 @@ $.compileActions = {
 					var exprFn = $.compileExpr(child.getAttribute("@scope") || "scope")
 					child.removeAttribute("@use")
 					child.removeAttribute("@scope")
-					// steal attributes
+					// steal attributes -- is stealing attributes the right way to do it.
 					// TODO: steal the attributes for the @usevar too
-					if (frag.firstElementChild) {
-						for (var j=0; j<child.attributes.length; j++) {
-							frag.firstElementChild.setAttributeNode(child.attributes[j].cloneNode())
-						}
-					}
+                    // this outer for loop is a hack for firstElementChild on fragments in ie
+                    for (var c = frag.firstChild; c != null; c = c.nextSibling) {
+                        if (c.nodeType === 1) {// element node
+                            for (var j=0; j<child.attributes.length; j++) {
+                            	c.setAttributeNode(child.attributes[j].cloneNode())
+                            }
+                        }
+                    }
+					//if (frag.firstElementChild) {
+					//	for (var j=0; j<child.attributes.length; j++) {
+					//		frag.firstElementChild.setAttributeNode(child.attributes[j].cloneNode())
+					//	}
+					//}
 					var compiled = $.compile(frag, d) // TODO: @keep for extra data or smthng?
 					d.boundThings.push({
 						type: "use",

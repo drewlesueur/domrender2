@@ -27,6 +27,18 @@
 
 <pre id=w>
 
+
+<input @on.input="console.log(name)" @b=name />
+<select><option @repeat="vehicles v" value={v.id}>{v.name}</option></select>
+
+
+(working)
+{name}
+<span drstyle="color: {color}" data-problem="some {color}">is this red</span>
+
+<div @attr.class="foo" @class.bar="hasBar"> yo</div>
+<div @class.bar="hasBar" @attr.class="foo" > yo2</div>
+
 <div>{myEmptyObj.bazzy}</div>
 <div>{myEmptyObj.bazzy} wazzy</div>
 
@@ -34,12 +46,13 @@
 {myEmptyObj.foo}
 {myEmptyObj.isNull}
 
+<!--</pre> <pre style="display: none;"> --> <!-- end working -->
+
+
 <div @repeat="vehicles v">
 	<div @repeat="Object.keys(v) key">{key}: {v[key]}</div>
 </div>
 
-<div @attr.class="foo" @class.bar="hasBar"> yo</div>
-<select><option @repeat="vehicles v" value={v.id}>{v.name}</option></select>
 
 
 <input @repeat="vehicles v" @key=v.id @b=v.name @on.input="vehicles = [v]"/>
@@ -53,7 +66,7 @@
 {count}
 <button @on.click="count++">Increase count to {count + 1}</button>
 <input @repeat="colors c i" @b="colors[i]" @on.dradd="console.log(event.detail.value)" @on.drchangeb="logChange(event)"/>
-<div style="background-color: {colors[0]}">the first color</div>
+<div drstyle="background-color: {colors[0]}">the first color</div>
 <div @repeat="colors c">{c}</div>
 <div @repeat="vehicles v">{v.name}</div>
 
@@ -90,7 +103,7 @@
 <div @case="'lemon'">Life gave you this</div>
 <div @default>What fruit is that?</div>
 
-<div @use=test1 @scope=scope></div>
+<!--<div @use=test1 @scope=scope></div>-->
 <div @use=test2 @scope=scope @class.red="fruit == 'watermelon'" @class.yellow="fruit == 'lemon'" @class.maroon="fruit == 'cherry'"></div>
 </div>
 
@@ -106,57 +119,18 @@
 </div>
 </div> <!-- end templates -->
 
-<div style="display: none;">
-	<div @switch="val" @case="foo"> it's just foo</div>
-	<div @case="bar"> the bar</div>
-
-	<div @case="baz" @start> the baz</div>
-	<div @end> that was the baz</div>
-	<div @if=fo></div>
-	something
-
-	<div @use="test1" @scope="vehicles[0]">foobar</div>
-
-	Hi {name}
-
-	<div @usevar="template" @scope="vehicles[0]">foobar</div>
-
-	hi {name}
-	<div @repeat="vehicles v i" @start>ok {v.name}====</div>
-	<div @repeat="colors c" @start>start {c}</div>
-	<div @end>end {c}</div>
-	<div @end>{v.name}=====</div>
-
-	<div @repeat="vehicles v i" @start>
-	<div @repeat="colors c" @start>{v.name}: {c}</div><div @end>hi {c}</div>
-	</div >
-	<div @end>{v.name}==</div>
-
-	test bind is <span @t=name>foo</span>
-	test html <span @h=someHTML></span>
-	<input @b=name>
-	<input @repeat="vehicles v" @b=v.name>
-	test bind2 {name}
-	<div @repeat="vehicles v i" >hello {i + 1} {v.name} </div> 
-	<div>There are {vehicles.length} vehicles</div>
-
-	<div @repeat="vehicles v i" @start>a vehicle {v.name}</div>wowsa<div @end> that was a vehicle {v.name}
-	</div>
-
-	<div @repeat="vehicles v i">
-	<div @repeat="colors c">{v.name}: {c}</div>
-</div>
 
 </div>
 <script src="domrender2.js"></script>
 <script>
 var scope2 = {
+    color: "red",
 	myEmptyVar: null,
 	myEmptyObj: {foo: "bar", isNull: null},
 	foo: "foo2",
 	hasBar: true,
 	logChange: function (e) {
-		console.log('changed from', event.detail.oldVal, 'to', event.detail.newVal)
+		console.log('changed from', e.detail.oldVal, 'to', e.detail.newVal)
 	},
 	things: [],
 	hasCheese: true,
