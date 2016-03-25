@@ -82,15 +82,15 @@ $.compileExpr = function (expr) {
 }
 $.compiledExprExtras = {}
 $.compileExprExtra = function (expr) {
-	var code = "if (extra) with (scope) { with (extra) { "+expr+" } }" +
+	var code = "if (domrender_extra) {\n with (scope) {\n with (domrender_extra) { "+expr+" }\n }\n }\n" +
 		"else with (scope) { "+expr+"}"
-	return $.compileGeneral($.compiledExprExtras, "scope, extra", code)
+	return $.compileGeneral($.compiledExprExtras, "scope, domrender_extra", code)
 }
 $.compiledAssigns = {}
 $.compileAssign = function (expr) {
-	var code = "if (extra) with (scope) { with (extra) { "+expr+"= value } }" +
+	var code = "if (domrender_extra) with (scope) { with (domrender_extra) { "+expr+"= value } }" +
 		"else with (scope) { "+expr+"= value }"
-	return $.compileGeneral($.compiledAssigns, "scope, extra, value", code)
+	return $.compileGeneral($.compiledAssigns, "scope, domrender_extra, value", code)
 }
 $.renderWrap = function (type, fn) {
 	return function (t, scope) {
