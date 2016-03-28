@@ -683,6 +683,12 @@ $.compileSubActions = {
 $.compileActions = {
 				"@t": function (d, child, attr, attrName) { // text
 					child.appendChild(document.createTextNode(""))
+					d.boundThings.push({
+						type: attrName,
+						render: $.renderBasic[attrName],
+						exprFn: $.compileExpr(attr.value),
+						el: child
+					})	
                 },
 				"@h": function (d, child, attr, attrName) {  // innerhtml
 					child.appendChild(document.createTextNode(""))
