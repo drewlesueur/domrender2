@@ -689,7 +689,7 @@ var domrender2 = (function($) {
             var newAttrs = []
             var orderIndex = 0;
             for (var i = 0; i < attrs.length; i++) {
-                if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch") {
+                if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch" || attrs[i].name == "@if" || attrs[i].name == "@else" || attrs[i].name == "@elseif") {
                     newAttrs.splice(orderIndex, 0, attrs[i])
                 } else if (attrs[i].name == "@repeat" || attrs[i].name == "@use" || attrs[i].name == "@usevar") {
                     newAttrs.unshift(attrs[i])
