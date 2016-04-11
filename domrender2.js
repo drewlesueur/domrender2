@@ -293,9 +293,11 @@ var domrender2 = (function($) {
         var usedScope = t.scopeExprFn(scope)
         var id = t.exprFn(scope)
         if (id != t.lastId) {
+            t.lastId = id
             for (var i = 0; i < t.lastLength; i++) {
                 t.stopper.previousSibling && t.stopper.parentNode.removeChild(t.stopper.previousSibling)
             }
+            t.lastLength = 0
             var el = document.getElementById(id)
             if (!el) return;
             var frag = document.createDocumentFragment()
@@ -306,12 +308,15 @@ var domrender2 = (function($) {
             }
             var compiled = $.compile(frag, d) // you could hang on to this
             t.compiled = compiled
-            $.render(compiled, usedScope, extraData)
+            if (usedScope) {
+                $.render(compiled, usedScope, extraData)
+            }
             t.stopper.parentNode.insertBefore(frag, t.stopper)
-            t.lastId = id
             t.lastLength = count
         } else if (t.compiled) {
-            $.render(t.compiled, usedScope, extraData)
+            if (usedScope) {
+                $.render(t.compiled, usedScope, extraData)
+            }
         }
     }
     $.renderGeneral = function(t, scope, extraData) {
@@ -354,8 +359,11 @@ var domrender2 = (function($) {
     }
     $.renderRepeat = function(t, scope, extraData, parentD) {
         var newVal = t.exprFn(scope)
-            //if (t.oldVal == newVal) { return } // because we aren't immutable (yet?)
-            // TODO: consider pooling the elements and compileds so you can use them again
+        if (!newVal) {
+            newVal = []
+        }
+        //if (t.oldVal == newVal) { return } // because we aren't immutable (yet?)
+        // TODO: consider pooling the elements and compileds so you can use them again
         var events = []
 
         // rearrange with keys
