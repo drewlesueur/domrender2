@@ -823,6 +823,7 @@ var domrender2 = (function($) {
             })
         },
         "@on": function(parts0, parts1, d, child, attr, attrName) {
+	    debugger
             child.addEventListener(parts1, $.makeOnFunc(child, attr.value, d))
         }
     }

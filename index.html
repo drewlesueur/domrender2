@@ -28,6 +28,11 @@
 <label><input type=checkbox id=c />ok</label>
 
 <pre id=w>
+<div style="background-color: teal;" @if='name == "drew"' @on.click="console.log('Clicked!')">Click me</div>
+<div><div style="background-color: teal;" @if='name == "drew"' @on.click="console.log('Clicked!')">Click me</div></div>
+</pre>
+<pre>
+
 
 <label><input type=checkbox id=a @hasattr.checked=shouldShowName() @on.change="showName = this.checked" /> show name ({showName ? name : ''})</label>
 <label><input type=checkbox id=b @b=showName /> show name ({showName ? name : ''})</label>
@@ -122,6 +127,7 @@ My name is <span @t=name></span>
 <div id="test2">
 <span style="font-weight: bold;">{fruit}</span>
 </div>
+
 </div> <!-- end templates -->
 
 
