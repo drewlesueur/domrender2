@@ -112,7 +112,11 @@ var domrender2 = (function($) {
                     what: t.what
                 }
             })
-            t.el.dispatchEvent(e)
+
+            // Do not dispatch events on disabled elements (causes problems in firefox see: https://bugzilla.mozilla.org/show_bug.cgi?id=889376)
+            if (!t.el.disabled) {
+                t.el.dispatchEvent(e)
+            }
             t.oldVal = newVal
         }
     }
