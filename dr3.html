@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+
+<pre id=w>
+<div id=foo style="background-color: teal;" @if='this.name == "drew"' @on.click="console.log('Clicked!')">Click me</div>
+<div><div id="foo2" style="background-color: teal;" @if='this.name == "drew"' @on.click="console.log('Clicked!')">Click me</div>
+{this.name}
+</div>
+</pre>
+
+<pre id="page">
+    {this.name}
+    <input @b=this.name data-name="{this.name}foo">
+
+    {this.time}
+    <div @use=template_time></div>
+    
+    {this.startTime}
+    <div @use=template_time2 @extra="{prop: 'startTime'}"></div>
+
+    {this.endTime}
+    <div @use=template_time2 @extra='{prop: "endTime"}'></div>
+
+    {this.midTime}
+    <div @usevar=this.midTimeTemplate @extra='{prop: "midTime"}'></div>
+
+    <button @on.click="this.name = 'frederick'">Test button</button>
+
+    <div @if="this.name == 'Drew'">Name is Drew</div>
+
+    <div @use="person_template"></div>
+    <div @use="person_template" @scope=this.person></div>
+<!--</div>
+<div style='display: none;'>-->
+    <div @repeat="this.colors c i">
+        <input @b=this.colors[i]> <!-- good idiom -->
+        <div @style.background-color="c">this color is {c} ! {c.toUpperCase()}</div>
+        <button @on.click="this.colors[i] = 'pink'">make pink</button>
+        <div @if="c == 'blue'">That was blue</div>
+        <div @else>That was NOT blue</div>
+        <div @use=color_template></div>
+        <div @use=color_template2 @scope=c></div>
+        <div @usevar="'template_' + c" @scope=c></div>
+    </div>
+
+    <div @repeat="this.peeps p">
+        {p.name}
+        <input @b="p.name">
+    </div>
+
+    <div @repeat="this.names n">
+        hi  {n}
+        <div style="padding-left: 10px;"@repeat="this.names n2">
+            bye {n}:{n2}
+        </div>
+    </div>
+
+    <div @repeat="this.groups g i">
+        Group # {i}
+        <div style="margin-left: 20px;" @repeat="g item i2">{i2}: {item}</div> 
+    </div>
+</pre>
+
+<div id="person_template" style="display: none"> Hi, my name is {this.name} and I am {this.age} years old </div>
+<div id="color_template" style="display: none"> this color is {c} </div>
+<div id="color_template2" style="display: none"> this color is {this} </div>
+<div id="template_blue" style="display: none">Hello world this is totally blue, azul, not rojo {this}</div>
+<div id="template_time" style="display: none"><input style="border: 5px solid green;" @b="this.time"/></div>
+<div id="template_time2" style="display: none"><input style="border: 5px solid green;" @b="this[prop]"/></div>
+
+
+<script src="domrender3.js"></script>
+<script>
+"use strict";
+
+var app = {
+    midTimeTemplate: 'template_time2',
+    startTime:0,
+    endTime:0,
+    name: "Drew",
+    age: 32,
+    names: ["foo", "bar", "baz"],
+    groups: [[1,3], [5,8], [7,9]],
+    colors: ["red", "green", "blue"],
+    peeps: [{name:"Tom"},{name: "Fred"}, {name:"Bill"} ],
+    person: {"name": "Doug Funny", "age": 27}
+}
+var view = domrender3.bind(document.getElementById("page"), app)
+
+var app2 = {name: "drew"}
+var view2 = domrender3.bind(document.getElementById("w"), app2)
+
+</script>
+</body>
+</html>
+
+
+
