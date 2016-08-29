@@ -1,0 +1,77 @@
+<html charset="UTF-8">
+    <head>
+        <link href="../node_modules/mocha/mocha.css" rel="stylesheet">
+    </head>
+    <body>
+    
+        <!-- Domrender Element -->
+        <!-- <div style='display: none' id="main"> -->
+        <div id="main">
+            <span id="test_name">{this.name}</span>
+            <span id="test_name_function">{this.upperCaseName()}</span>
+            <span id="test_twostrings">{this.string1} - {this.string2}</span>
+            <span id="test_escaped_html" @t=this.unescaped_html></span>
+            <span id="test_unescaped_html" @h=this.unescaped_html></span>
+            <span id="test_class" @class.test=this.class_test></span>
+            <span id="test_class_interpolated" class="{this.classInterpolated}"></span>
+            <span id="test_style" @style.background-color="this.backgroundColor"></span>
+            <span id="test_style_interpolated" style="background-color: {this.backgroundColorInterpolated}; color: blue"></span>
+            <span id="test_attribute" @attr.data-test=this.attrTest></span>
+            <span id="test_attribute_interpolated" data-test={this.attrTestInterpolated}></span>
+            <input id="test_hasattr_checked" type="checkbox" @hasAttr.checked=this.hasAttrChecked></input>
+            <input id="test_hasattr_disabled" type="text" @hasAttr.disabled=this.hasAttrDisabled></input>
+            <ul>
+                <li class="test_repeat" @repeat="item in this.repeatItems">
+                    <span>{item.value}</span>
+                </li>
+            </ul>
+            <ul>
+                <li @repeat="item in this.nestedRepeatItems">
+                    <ul>
+                        <li class="test_nested_repeat" @repeat="item2 in item.items">{item2.value}</li>
+                    </ul>
+                </li>
+            </ul>
+            <div id="use_template_parent">
+                <div @use="use_template"></div>
+            </div>
+            <div id="use_template_parent_scope">
+                <div @use="use_template_scope" @scope=this.useScope></div>
+            </div>
+            <div id="use_template_parent_extra">
+                <div @use="use_template_extra" @extra="{property: 'extra'}"></div>
+            </div>
+            <div id="usevar_template_parent">
+                <div @usevar="this.usevarTemplateName"></div>
+            </div>
+            <div id="usevar_template_parent_scope">
+                <div @usevar="this.usevarScopeTemplateName" @scope=this.useScope></div>
+            </div>
+            <div id="usevar_template_parent_extra">
+                <div @usevar="this.usevarExtraTemplateName" @extra="{property: 'extra'}"></div>
+            </div>
+        </div>
+
+        <!-- Test Templates -->
+        <div style="display: none" id="use_template">
+            <h1 id="use_h1">Use!</h1>
+        </div>
+        <div style="display: none" id="use_template_scope">
+            <h1 id="use_h1">{this.property}</h1>
+        </div>
+        <div style="display: none" id="use_template_extra">
+            <h1 id="use_h1">{this[property]}</h1>
+        </div>
+
+
+        <!-- Mocha Reporting Element -->
+        <div id="mocha"></div>
+
+        <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../node_modules/mocha/mocha.js"></script>
+        <script src="../node_modules/chai/chai.js"></script>
+        <script src="../domrender3.js"></script>
+        <script src="helpers.js"></script>
+        <script src="index.js"></script>
+    </body>
+</html>
