@@ -8,6 +8,7 @@
 // you could prob easily add to extras as you want
 // TODO: getter and setter with @b!
 // TODO: @use and @usevar
+// TODO: ability to break out of interpolation (for getting {}
 var domrender3 = (function($) {
     $.bind = function(el, scope, options) { // this is the starting point!
         options = options || {}
