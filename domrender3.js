@@ -35,10 +35,10 @@ var domrender3 = (function($) {
     $.uniqueId = function () { return $._id++ },
     $.makeOnFunc = function(child, expr, d, parentT) {
         var extras = parentT.extras.concat("event")
-        var exprFn = $.compileExpr(expr, extras)
+        var exprFn = $.compileExprEvent(expr, extras)
         return function(e) {
             //window.event = e // firefox needs this
-            var extra = child._extra || []
+            var extra = (child._extra || []).slice()
             extra.push(e)
             $.callExprFn(exprFn, child._scope, extra)
             d.root.render()
@@ -56,6 +56,11 @@ var domrender3 = (function($) {
         var args = ""
         if (extras && extras.length) { args = extras.join(", ") }
         return $.compileGeneral($.compiledExprs, args, "return " + expr)
+    }
+    $.compileExprEvent = function(expr, extras) {
+        var args = ""
+        if (extras && extras.length) { args = extras.join(", ") }
+        return $.compileGeneral($.compiledExprs, args, expr)
     }
     $.compiledAssigns = {}
     $.compileAssign = function(expr, extras) {
@@ -688,6 +693,9 @@ var domrender3 = (function($) {
         "@use": function(d, child, attr, attrName, parentT) { // re use other html somewhere else with a specific id
             var frag = document.createDocumentFragment()
             var otherEl = document.getElementById(attr.value)
+            if (otherEl.content) { // template here
+                otherEl = otherEl.content 
+            }
             if (!otherEl) { return }
             for (var c = otherEl.firstChild; c != null; c = c.nextSibling) {
                 frag.appendChild(c.cloneNode(true))
