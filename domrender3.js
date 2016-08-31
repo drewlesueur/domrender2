@@ -9,6 +9,7 @@
 // TODO: getter and setter with @b!
 // TODO: @use and @usevar
 // TODO: ability to break out of interpolation (for getting {}
+// TODO: consider being able to render a specific element? (maybe a bad idea)
 var domrender3 = (function($) {
     $.bind = function(el, scope, options) { // this is the starting point!
         options = options || {}
@@ -398,6 +399,7 @@ var domrender3 = (function($) {
         }
     }
     $.makeNewRepeatFrag = function (t, i, parentD) {
+	// TODO: you could save the path from the els to the frag?, not have to compile it each time?
         var newFrag = t.frag.cloneNode(true)
         var compiled = $.compile(newFrag, parentD, t)
         t.compileds[i] = compiled
@@ -530,14 +532,14 @@ var domrender3 = (function($) {
             attrLoop:
                 for (var i = 0; i < attrs.length; i++) {
                     var attr = attrs[i]
-                    if (attr.name.substr(0, 1) == "@") {
+                    if (attr.name.substr(0, 1) == "@" || attr.name.substr(0, 3) == "dr-") {
                         if (!addedGeneral) {
                             $.addBookkeepingBoundThing(child, d)
                             addedGeneral = true
                         }
                         var attrName = attr.name
-                        if (attrName.charAt(0) == "_") {
-                            attrName = "@" + attrName.slice(1)
+                        if (attrName.charAt(0) == "d") {
+                            attrName = "@" + attrName.slice(3)
                         }
 
                         var compileAction = $.compileActions[attrName]
