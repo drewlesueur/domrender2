@@ -523,6 +523,12 @@ var domrender3 = (function($) {
             // put stuff in the right order, (ie)
             var newAttrs = []
             var orderIndex = 0;
+		// TODO: have a better ordering
+		// 1. @repeat
+		// 2. @use, @usevar
+		// 3. @if, @else, @elseif, @switch, @case, @default
+		// 3. @attr.* (@attr.class), @b,
+		// 4. everything else
             for (var i = 0; i < attrs.length; i++) {
                 if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch" || attrs[i].name == "@if" || attrs[i].name == "@else" || attrs[i].name == "@elseif") {
                     newAttrs.splice(orderIndex, 0, attrs[i])
