@@ -280,28 +280,6 @@ var domrender3 = (function($) {
             t.oldVal = newVal
         }
     } 
-    //$.renderInterpolated = function (t, scope, extraData) {
-    //    var final = []
-    //    for (var i = 0; i < t.parts.length; i++) {
-    //        var part = t.parts[i]
-    //        part.type == "{" ? final.push(part.expr) : final.push($.callExprFn(part.exprFn, scope, extraData)) 
-    //    }
-    //    var newVal = final.join("")
-    //    if (t.oldVal == newVal) { return }
-    //    t.el.nodeValue = newVal //t.el.setAttribute(t.attrName, newVal)
-    //    t.oldVal = newVal
-    //} 
-    //$.renderInterpolatedAttr = function (t, scope, extraData) {
-    //    var final = []
-    //    for (var i = 0; i < t.parts.length; i++) {
-    //        var part = t.parts[i]
-    //        part.type == "{" ? final.push(part.expr) : final.push($.callExprFn(part.exprFn, scope, extraData)) 
-    //    }
-    //    var newVal = final.join("")
-    //    if (t.oldVal == newVal) { return }
-    //    t.el.setAttribute(t.attrName, newVal)
-    //    t.oldVal = newVal
-    //} 
     // Is is worth the space savings?
     $.renderInterpolated = $.renderInterpolateder(function (t, newVal) {
         t.el.nodeValue = newVal 
