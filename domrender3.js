@@ -6,11 +6,13 @@
 // gotcha - @b and then @on.click
 // attribute on anything that goes thru domrender
 // you could prob easily add to extras as you want
+// TODO: repeat before @use, etc
 // TODO: getter and setter with @b!
 // TODO: @use and @usevar
 // TODO: ability to break out of interpolation (for getting {}
 // TODO: consider being able to render a specific element? (maybe a bad idea)
 // TODO: select box replace, t.oldValue is different
+// custom components
 var domrender3 = (function($) {
     $.bind = function(el, scope, options) { // this is the starting point!
         options = options || {}
@@ -436,6 +438,7 @@ var domrender3 = (function($) {
             lastSwitch: null
         }
         if (!parentD) { d.root = d }
+        // TODO: !!! should I not do this in a loop, doesn't vistit recurse?
         for (var i = 0; i < els.length; i++) {
             $.visit(els[i], d, parentT)
         }
@@ -476,6 +479,7 @@ var domrender3 = (function($) {
     // TODO: (side node) with repeat you could be compileing with extras an extra time in the actual expr for the repeat
     $.visit = function(child, d, parentT) {
         var addedGeneral = false
+        // text node
         if (child.nodeType == 3) { // maybe have an overwride class for preventing this
             if (child.nodeValue.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
                 var parts = $.parseInterpolated(child.nodeValue, d, parentT)
@@ -516,12 +520,12 @@ var domrender3 = (function($) {
             // put stuff in the right order, (ie)
             var newAttrs = []
             var orderIndex = 0;
-		// TODO: have a better ordering
-		// 1. @repeat
-		// 2. @use, @usevar
-		// 3. @if, @else, @elseif, @switch, @case, @default
-		// 3. @attr.* (@attr.class), @b,
-		// 4. everything else
+            // TODO: have a better ordering
+            // 1. @repeat
+            // 2. @use, @usevar
+            // 3. @if, @else, @elseif, @switch, @case, @default
+            // 3. @attr.* (@attr.class), @b,
+            // 4. everything else
             for (var i = 0; i < attrs.length; i++) {
                 if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch" || attrs[i].name == "@if" || attrs[i].name == "@else" || attrs[i].name == "@elseif") {
                     newAttrs.splice(orderIndex, 0, attrs[i])
@@ -552,6 +556,7 @@ var domrender3 = (function($) {
                             if (ret == $._children_done) {
                                 childrenDone = true
                             } else if (ret == $._break) { // for @repeat
+                                $.compileTag(child)
                                 return child.nextSibling
                             } else if (ret) {
                                 return ret
@@ -599,6 +604,8 @@ var domrender3 = (function($) {
                         }
                     }
                 }
+
+            
         }
         if (!childrenDone) {
             for (var c = child.firstChild; c != null; c = $.visit(c, d, parentT)) {}
@@ -644,6 +651,7 @@ var domrender3 = (function($) {
             var indexName = varParts[1]
             var valueName = varParts[0]
 
+            // TODO: allow dr-wrapper
             var wrapper = child.getAttribute("@wrapper") !== null
             var frag = document.createDocumentFragment()
             if (wrapper) {
@@ -781,6 +789,7 @@ var domrender3 = (function($) {
     $.findEndEls = function(child) {
         var ch = child
         var forFrag = [child]
+        // TODO: allow dr-wrapstart dr-wrapend
         if (child.getAttribute("@wrapstart") !== null) {
             var forFrag = []
             var startCount = 1
@@ -900,6 +909,10 @@ var domrender3 = (function($) {
         }
         d.boundThings.push(d.lastBoundThing)
         return last.nextSibling || $._break
+    }
+    $.tagDefs = {}
+    $.register = function (tagName, func) {
+        $.tagDefs[tagName.toUpperCase()] = func 
     }
     return $
 })({})

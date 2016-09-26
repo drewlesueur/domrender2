@@ -11,7 +11,14 @@
 </div>
 </pre>
 
-<pre id="page">
+<div id="page">
+this is a foo
+<foo>
+    <div to="spot1">Ok spot 1 {this.name}</div>
+    <div to="spot2">Ok spot 1 {this.age}</div>
+</foo>
+<pre>
+
     {this.name}
     <input @b=this.name data-name="{this.name}foo">
 
@@ -33,8 +40,9 @@
 
     <div @use="person_template"></div>
     <div @use="person_template" @scope=this.person></div>
-<!--</div>
-<div style='display: none;'>-->
+<!--</div> <div style='display: none;'>-->
+
+
     <div @repeat="this.colors c i">
         <input @b=this.colors[i]> <!-- good idiom -->
         <div @style.background-color="c">this color is {c} ! {c.toUpperCase()}</div>
@@ -63,6 +71,7 @@
         <div style="margin-left: 20px;" @repeat="g item i2">{i2}: {item}</div> 
     </div>
 </pre>
+</div><!-- end page -->
 
 <div id="person_template" style="display: none"> Hi, my name is {this.name} and I am {this.age} years old </div>
 <div id="color_template" style="display: none"> this color is {c} </div>
@@ -70,6 +79,23 @@
 <div id="template_blue" style="display: none">Hello world this is totally blue, azul, not rojo {this}</div>
 <div id="template_time" style="display: none"><input style="border: 5px solid green;" @b="this.time"/></div>
 <div id="template_time2" style="display: none"><input style="border: 5px solid green;" @b="this[prop]"/></div>
+
+<foo @custom=true style="display: none;">
+    <div @style.background-color="this.props.bgcolor" @on.click="this.clicky()">{this.name} {this.count}</div>
+    <yield from="spot1">
+    something
+    <yield from="spot2">
+</foo>
+
+<script>
+function Foo(props) {
+    this.props = props
+    console.log("i'm here")
+}
+Foo.prototype.clicky = function () {
+    this.count += 1
+}
+</script>
 
 
 <script src="domrender3.js"></script>
@@ -88,6 +114,7 @@ var app = {
     peeps: [{name:"Tom"},{name: "Fred"}, {name:"Bill"} ],
     person: {"name": "Doug Funny", "age": 27}
 }
+domrender3.register("foo", Foo)
 var view = domrender3.bind(document.getElementById("page"), app)
 
 var app2 = {name: "drew"}
