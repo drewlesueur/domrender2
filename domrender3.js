@@ -10,6 +10,7 @@
 // TODO: @use and @usevar
 // TODO: ability to break out of interpolation (for getting {}
 // TODO: consider being able to render a specific element? (maybe a bad idea)
+// TODO: select box replace, t.oldValue is different
 var domrender3 = (function($) {
     $.bind = function(el, scope, options) { // this is the starting point!
         options = options || {}
@@ -77,6 +78,14 @@ var domrender3 = (function($) {
             t.oldVal = newVal
         }
     }
+    $.renderWrap2 = function(type, fn) { // TODO
+        return function(t, scope, extraData) {
+            var newVal = $.callExprFn(t.exprFn, scope, extraData)
+            //if (t.oldVal === newVal) return; // for when you change out selects
+            fn(t, scope, newVal, extraData)
+            t.oldVal = newVal
+        }
+    }
     $.renderText = $.renderWrap("t", function(t, scope, newVal) {
             t.el.firstChild.nodeValue = newVal /*inner text*/
     })
@@ -97,7 +106,13 @@ var domrender3 = (function($) {
                 newVal ? t.el.setAttribute(t.what, newVal) : t.el.removeAttribute(t.what)
         })
     }
-    $.renderInput = $.renderWrap("b", function(t, scope, newVal) { // TODO: other types of inputs
+    // TODO: instead of using renderwrap2, which doesn't return early if there were no changes,
+    // you should just "invalidate" t.oldVal if you are repeating on options and they change?
+    // or at least split out selects from others
+    // Also there is the case where if the browser automatically fills out the form
+    // (like Chrome does when it turns it yellow when it remembers your personal info)
+    // it could be that the cache is bad, (unless that calls the on input events).
+    $.renderInput = $.renderWrap2("b", function(t, scope, newVal) { // TODO: other types of inputs
         if (t.el.type == "checkbox") {
             t.el.checked = !!newVal
         } else if (t.el.type == "radio") {
@@ -561,7 +576,8 @@ var domrender3 = (function($) {
                             }
                         }
                     } else {
-                        if (attr.value.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
+                        // TODO: a way to opt out of this
+                        if (attr.name.substr(0, 2) != "on" && attr.value.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
                             var parts = $.parseInterpolated(attr.value, d, parentT)
                             if (parts.length) {
                                 if (!addedGeneral) { // duplicated
