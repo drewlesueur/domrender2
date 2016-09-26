@@ -52,6 +52,7 @@
             </div>
         </div>
 
+
         <!-- Test Templates -->
         <div style="display: none" id="use_template">
             <h1 id="use_h1">Use!</h1>
@@ -63,9 +64,62 @@
             <h1 id="use_h1">{this[property]}</h1>
         </div>
 
+        <my-counter2 style="display: none" id="my-counter2-template">
+            <span class="a-counter" style='font-size: 50px;' @style.background-color="this.bgColor">{this.model.count}<span>
+            <span @if="this.model.count == 20">!!!!!</span>
+            <span @if="this.done">I'm done</span>
+            <button @else @on.click="this.model.count += 1">Click!</button>
+
+            <button @on.click="this.countdown()">Count down</button>
+            <button @on.click="">ask for help</button>
+        </my-counter2>
+
+        <div id="custom-tags4">
+            <my-counter2 @model="this.counter" @args="{bgColor: 'green'}"></my-counter2>
+            <button @on.click="this.counter.count = 0">Reset counter</button>
+        </div>
 
         <!-- Mocha Reporting Element -->
         <div id="mocha"></div>
+        <script>
+            function MyCounter(model, state) {
+                this.model = model
+                this.bgColor = state.bgColor 
+            }
+
+            function MyCounter2(model, args) { // constructor acts as mount function
+                this.model = model
+                if (args) {
+                    this.bgColor = args.bgColor 
+                }
+            }
+
+            MyCounter2.prototype.countdown = function() { // blindly everytime we render?
+                if (this.countingDown) {
+                    return 
+                }
+
+                this.countingDown = true
+                setInterval(() => {
+                    this.model.count -= 1 
+                    this.render()
+                }, 500)
+            }
+
+            MyCounter2.prototype.onUpdate = function() { // blindly everytime we render?
+                if (this.model.count == 20) {
+                    this.done = true 
+                }
+
+                if (this.model.count == 0) {
+                    this.done = true 
+                }
+            }
+
+            MyCounter2.prototype.onUnmount = function() {
+                
+            }
+        </script>
 
         <script src="../node_modules/jquery/dist/jquery.min.js"></script>
         <script src="../node_modules/mocha/mocha.js"></script>

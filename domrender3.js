@@ -133,6 +133,23 @@ var domrender3 = (function($) {
             t.el.value = newVal
         }
     })
+    $.renderComponent = function(t, scope, extraData) {
+            if (!t.renderedOnce) {
+                var model = $.callExprFn(t.modelExprFn, scope, extraData)
+                if (t.argsExprFn) {
+                    var args = $.callExprFn(t.argsExprFn, scope, extraData)
+                    t.componentObj = new t.constructorFunc(model, args) 
+                }  else {
+                    t.componentObj = new t.constructorFunc(model) 
+                }
+                t.renderedOnce = true 
+            } else if (t.componentObj.onUpdate) {
+                t.componentObj.onUpdate()
+            }
+
+            $.render(t.compiled, t.componentObj, [])
+            return
+    } 
     $.renderUse = function(t, scope, extraData) {
         var scope = $.callExprFn(t.scopeExprFn, scope, extraData)
         //for (var i=0; i < t.extraExprFns.length; i++) {
@@ -478,6 +495,14 @@ var domrender3 = (function($) {
     }
     // TODO: (side node) with repeat you could be compileing with extras an extra time in the actual expr for the repeat
     $.visit = function(child, d, parentT) {
+
+        // custom element time
+        var tagDef = $.tagDefs[child.nodeName] 
+        if (tagDef) {
+           child.setAttribute("dr-use", tagDef.el.id)
+           child.setAttribute("dr-component", child.nodeName)
+        }
+
         var addedGeneral = false
         // text node
         if (child.nodeType == 3) { // maybe have an overwride class for preventing this
@@ -529,7 +554,7 @@ var domrender3 = (function($) {
             for (var i = 0; i < attrs.length; i++) {
                 if (attrs[i].name == "@attr.class" || attrs[i].name == "@b" || attrs[i].name == "@switch" || attrs[i].name == "@if" || attrs[i].name == "@else" || attrs[i].name == "@elseif") {
                     newAttrs.splice(orderIndex, 0, attrs[i])
-                } else if (attrs[i].name == "@repeat" || attrs[i].name == "@use" || attrs[i].name == "@usevar") {
+                } else if (attrs[i].name == "@repeat" || attrs[i].name == "@use" || attrs[i].name == "@usevar" || attrs[i].name == "dr-use") {
                     newAttrs.unshift(attrs[i])
                     orderIndex++;
                 } else {
@@ -556,7 +581,7 @@ var domrender3 = (function($) {
                             if (ret == $._children_done) {
                                 childrenDone = true
                             } else if (ret == $._break) { // for @repeat
-                                $.compileTag(child)
+                                //$.compileTag(child)
                                 return child.nextSibling
                             } else if (ret) {
                                 return ret
@@ -700,6 +725,7 @@ var domrender3 = (function($) {
         },
         "@use": function(d, child, attr, attrName, parentT) { // re use other html somewhere else with a specific id
             var frag = document.createDocumentFragment()
+
             var otherEl = document.getElementById(attr.value)
             if (otherEl.content) { // template here
                 otherEl = otherEl.content 
@@ -715,6 +741,7 @@ var domrender3 = (function($) {
             var extras = (parentT.extras || []).slice()
             var extraDataInject = []
             $.tweakUseExtras(child, extras, extraDataInject)
+
             var t = {
                 type: "use",
                 render: $.renderUse,
@@ -723,8 +750,31 @@ var domrender3 = (function($) {
                 //extraExprFns: [$.compileExpr("'startTime'", parentT.extras)] // was here
                 extraDataInject: extraDataInject
             }
+
             var compiled = $.compile(frag, d, t)
             t.compiled = compiled
+
+            var componentName = child.getAttribute("dr-component")
+            if (componentName) {
+                var tagDef = $.tagDefs[componentName]
+                if (tagDef) {
+                    t.renderedOnce = false 
+                    t.isComponent = true
+                    t.constructorFunc = tagDef.constructorFunc
+                    t.modelExprFn = $.compileExpr(child.getAttribute("@model"), parentT.extras)
+                    
+                    var argsExpr = child.getAttribute("@args")
+                    if (argsExpr) {
+                        t.argsExprFn = $.compileExpr(argsExpr, parentT.extras)
+                    }
+
+                    t.render = $.renderComponent
+                }
+
+                tagDef.constructorFunc.prototype.render = function () {
+                    $.render(t.compiled, t.componentObj, [])
+                }
+            }
 
             // the extras are generated at compile time. Do we need one generated at runtime?
             d.boundThings.push(t)
@@ -911,8 +961,8 @@ var domrender3 = (function($) {
         return last.nextSibling || $._break
     }
     $.tagDefs = {}
-    $.register = function (tagName, func) {
-        $.tagDefs[tagName.toUpperCase()] = func 
+    $.register = function (tagName, templateEl, constructor) {
+        $.tagDefs[tagName.toUpperCase()] = {el: templateEl, constructorFunc: constructor}
     }
     return $
 })({})
