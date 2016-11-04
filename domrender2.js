@@ -36,6 +36,7 @@ var domrender2 = (function($) {
     })();
     $.bind = function(el, scope, options) { // this is the starting point!
         options = options || {}
+        if (options.markRenderedElements) $.markRenderedElements = true
         var d = $.compile(el)
         if (options.noAsyncRender) {
             d.render = function(cb) {
@@ -651,6 +652,7 @@ var domrender2 = (function($) {
     }
     $.visit = function(child, d) {
         var addedGeneral = false
+        if ($.markRenderedElements && child.setAttribute) child.setAttribute("data-rendered", "true")
         if (child.nodeType == 3) { // maybe have an overwride class for preventing this
             if (child.nodeValue.indexOf("{") != -1) { // if its interpolation syntax // is there a faster first check 
                 var parts = $.parseInterpolated(child.nodeValue)
