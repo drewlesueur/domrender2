@@ -21,7 +21,7 @@ var domrender3 = (function($) {
             var start = Date.now()
             $.render(d, scope)
             if (d.onrender) { d.onrender(d, scope) }
-            console.log("domrender3", Date.now() - start)
+            //console.log("domrender3", Date.now() - start)
         }
         if (options.noAsyncRender) {
             d.render = d.renderSync
@@ -36,15 +36,16 @@ var domrender3 = (function($) {
     }
     $._id = 0
     $.uniqueId = function () { return $._id++ },
-    $.makeOnFunc = function(child, expr, d, parentT) {
+    $.makeOnFunc = function(child, expr, d, parentT, what) {
         var extras = parentT.extras.concat("event")
         var exprFn = $.compileExprEvent(expr, extras)
         return function(e) {
             //window.event = e // firefox needs this
             var extra = (child._extra || []).slice()
             extra.push(e)
-            $.callExprFn(exprFn, child._scope, extra)
+            var ret = $.callExprFn(exprFn, child._scope, extra)
             d.root.render()
+            return ret
         }
     }
     $.compileGeneral = function(cache, args, code) {
@@ -58,6 +59,7 @@ var domrender3 = (function($) {
     $.compileExpr = function(expr, extras) {
         var args = ""
         if (extras && extras.length) { args = extras.join(", ") }
+        if (expr == " " || expr == "") expr = undefined
         return $.compileGeneral($.compiledExprs, args, "return " + expr)
     }
     $.compileExprEvent = function(expr, extras) {
@@ -83,8 +85,11 @@ var domrender3 = (function($) {
     $.renderWrap2 = function(type, fn) { // TODO
         return function(t, scope, extraData) {
             var newVal = $.callExprFn(t.exprFn, scope, extraData)
-            //if (t.oldVal === newVal) return; // for when you change out selects
-            fn(t, scope, newVal, extraData)
+            if (t.oldVal === newVal) return; // for when you change out selects
+		// if it doesn't have the focus?
+		if (document.activeElement != t.el) { // TODO: check on this too
+		    fn(t, scope, newVal, extraData)
+		}
             t.oldVal = newVal
         }
     }
@@ -130,24 +135,44 @@ var domrender3 = (function($) {
                 selectIndex += 1
             }
         } else { // regular input or color
-            t.el.value = newVal
+            t.el.value = newVal || ''
         }
     })
     $.renderComponent = function(t, scope, extraData) {
+		var getData = function (constructorOrUpdate) {
+			var model
+			var args
+			if (t.modelExprfn) {
+				model = $.callExprFn(t.modelExprFn, scope, extraData)
+			}
+			if (t.argsExprFn) {
+				args = $.callExprFn(t.argsExprFn, scope, extraData)
+			}
+			if (model) {
+				constructorOrUpdate(model, args) 
+			} else {
+				constructorOrUpdate(args, t.el) 
+			}
+		}
             if (!t.renderedOnce) {
-                var model = $.callExprFn(t.modelExprFn, scope, extraData)
-                if (t.argsExprFn) {
-                    var args = $.callExprFn(t.argsExprFn, scope, extraData)
-                    t.componentObj = new t.constructorFunc(model, args) 
-                }  else {
-                    t.componentObj = new t.constructorFunc(model) 
-                }
+		// TODO: remove @model, only use args ?
+		// handling both cases here for now
+		getData(function (a, b) {
+			t.componentObj = new t.constructorFunc(a, b)
+			if (t.componentObjName) {
+				scope[t.componentObjName] = t.componentObj
+			}
+		})
                 t.renderedOnce = true 
             } else if (t.componentObj.onUpdate) {
-                t.componentObj.onUpdate()
+                getData(function (a, b)  {
+			t.componentObj.onUpdate(a, b)
+		})
             }
-
             $.render(t.compiled, t.componentObj, [])
+		if (t.componentObj.onRender) {
+			t.componentObj.onRender()
+		}
             return
     } 
     $.renderUse = function(t, scope, extraData) {
@@ -158,6 +183,9 @@ var domrender3 = (function($) {
         //$.render(t.compiled, scope, extraData)
         $.render(t.compiled, scope, (extraData || []).concat(t.extraDataInject))
     }
+    $.renderKeep = function (t, scope, extraData) {
+	scope[t.what] = t.el
+    },
     $.renderCond = {
         "@if": function(t, scope, extraData, d) {
             t.done = false
@@ -410,6 +438,7 @@ var domrender3 = (function($) {
                 var val = newVal[i]
                 var newExtraData = (extraData || []).concat(val, i)
                 $.render(t.compileds[i], scope, newExtraData)
+		
             }
             t.oldVal = newVal
             t.curLen = newVal.length
@@ -462,6 +491,10 @@ var domrender3 = (function($) {
         return d
     }
     $.addBookkeepingBoundThing = function(child, d) {
+	//console.log(child.nodeType, child.nodeName)
+	if (child.nodeType == "#text") {
+		return
+	}
         d.boundThings.push({
             type: "general",
             render: $.renderGeneral,
@@ -632,6 +665,13 @@ var domrender3 = (function($) {
 
             
         }
+
+
+	if (child.getAttribute && child.getAttribute('pass')) {
+		//return $._break	
+		childrenDone = true
+	}
+
         if (!childrenDone) {
             for (var c = child.firstChild; c != null; c = $.visit(c, d, parentT)) {}
         }
@@ -651,6 +691,14 @@ var domrender3 = (function($) {
         }
     }
     $.compileActions = {
+	"@keep": function(d, child, attr, attrName, parentT) {
+            d.boundThings.push({
+                type: "keep",
+                render: $.renderKeep,
+                what: attr.value,
+                el: child
+            })
+	},
         "@t": function(d, child, attr, attrName, parentT) { // text
             child.appendChild(document.createTextNode(""))
             d.boundThings.push($.basicT(attrName, $.renderText, attr.value, parentT.extras, child))
@@ -767,8 +815,17 @@ var domrender3 = (function($) {
                     if (argsExpr) {
                         t.argsExprFn = $.compileExpr(argsExpr, parentT.extras)
                     }
-
                     t.render = $.renderComponent
+
+		    var componentObjName = child.getAttribute("@as")
+		    if (componentObjName) {
+			t.componentObjName = componentObjName
+		    }
+
+                    //var onrenderExpr = child.getAttribute("@onrender")
+                    //if (onrenderExpr) {
+                    //    t.onrenderExprFn = $.compileExpr(onrenderExpr, parentT.extras)
+                    //}
                 }
 
                 tagDef.constructorFunc.prototype.render = function () {
@@ -777,10 +834,16 @@ var domrender3 = (function($) {
             }
 
             // the extras are generated at compile time. Do we need one generated at runtime?
+
             d.boundThings.push(t)
             var next = child.nextSibling
-            child.parentNode.insertBefore(frag, next)
-            child.parentNode.removeChild(child)
+	    if (child.getAttribute("@keepwrap") !== null) {
+	    	t.el = child
+		child.appendChild(frag)
+	    } else {
+		    child.parentNode.insertBefore(frag, next)
+		    child.parentNode.removeChild(child)
+	    }
             return next || $._children_done
         },
         "@usevar": function(d, child, attr, attrName, parentT) { // re use other html somewhere else with a variable id
